@@ -18,6 +18,7 @@ export default function FinalVote({ roomCode, userId, room, userList, movieList 
 
   const movies = room?.movies || {};
   const votes = room?.votes || {};
+  const tiebreakerRound = room?.tiebreakerRound || 0;
 
   // Surviving movies (not vetoed)
   const survivors = Object.entries(movies)
@@ -124,7 +125,7 @@ export default function FinalVote({ roomCode, userId, room, userList, movieList 
       <div className="text-center py-3 px-4 shrink-0"
         style={{ borderBottom: '1px solid var(--color-surface-elevated)' }}>
         <h2 className="page-title mb-1" style={{ fontSize: 'clamp(1.5rem, 4vw, 2.5rem)' }}>
-          {survivors.length === 2 ? 'TIEBREAKER!' : 'FINAL VOTE'}
+          {tiebreakerRound > 0 ? `TIEBREAKER ${tiebreakerRound}` : 'FINAL VOTE'}
         </h2>
         <p className="text-text-secondary text-sm">
           Pick your favorite from the survivors

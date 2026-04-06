@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { searchMovies, getMovieDetails } from '../../services/omdb';
+import { useState, useEffect, useRef } from 'react';
+import { searchMovies, getMovieDetails, getSessionRequestCount } from '../../services/omdb';
 import { submitMovie, removeMovie, markUserReady, checkAllReady } from '../../services/roomService';
 import MovieCard from '../MovieCard/MovieCard';
 
@@ -35,10 +35,19 @@ export default function MovieEntry({ roomCode, userId, userName, room, userList,
   const [error, setError] = useState(null);
   const [myDone, setMyDone] = useState(false);
   const [failedPosters, setFailedPosters] = useState(new Set());
+  const [sessionRequests, setSessionRequests] = useState(getSessionRequestCount);
+  const scrollContainerRef = useRef(null);
 
   const myMovies = movieList.filter((m) => m.submittedBy === userId);
   const maxMovies = settings.moviesPerPerson || 3;
   const remaining = maxMovies - myMovies.length;
+
+  // Scroll to top whenever the selected movie changes (show or hide)
+  useEffect(() => {
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }, [selectedMovie]);
 
   // Check if user already finished (page refresh case)
   useEffect(() => {
@@ -60,10 +69,11 @@ export default function MovieEntry({ roomCode, userId, userName, room, userList,
       try {
         const results = await searchMovies(query);
         setSearchResults(results);
-      } catch {
-        setError('Search failed. Try again.');
+      } catch (e) {
+        setError(e.message || 'Search failed. Try again.');
       } finally {
         setSearching(false);
+        setSessionRequests(getSessionRequestCount());
       }
     }, 400);
 
@@ -82,10 +92,11 @@ export default function MovieEntry({ roomCode, userId, userName, room, userList,
       } else {
         setError('Could not load movie details.');
       }
-    } catch {
-      setError('Failed to load details.');
+    } catch (e) {
+      setError(e.message || 'Failed to load details.');
     } finally {
       setLoadingDetails(false);
+      setSessionRequests(getSessionRequestCount());
     }
   };
 
@@ -171,9 +182,9 @@ export default function MovieEntry({ roomCode, userId, userName, room, userList,
             </h3>
             <div className="space-y-2">
               {myMovies.map((m) => (
-                <div key={m.id} className="flex items-center gap-2 text-sm text-text-primary">
-                  <span className="text-accent-primary">•</span>
-                  {m.title} ({m.year})
+                <div key={m.id} className="flex items-start gap-2 text-sm text-text-primary">
+                  <span className="text-accent-primary shrink-0 mt-0.5">•</span>
+                  <span className="text-left">{m.title} ({m.year})</span>
                 </div>
               ))}
             </div>
@@ -188,8 +199,13 @@ export default function MovieEntry({ roomCode, userId, userName, room, userList,
   }
 
   return (
-    <div className="page-container">
-      <div className="w-full max-w-md animate-fade-in">
+    <div style={{ minHeight: '100dvh', display: 'flex', flexDirection: 'column', backgroundColor: 'var(--color-surface-base)' }}>
+      <div
+        ref={scrollContainerRef}
+        className="flex-1 overflow-y-auto px-4 py-8"
+        style={{ WebkitOverflowScrolling: 'touch' }}
+      >
+      <div className="w-full max-w-md mx-auto animate-fade-in">
         {/* Header */}
         <div className="text-center mb-6">
           <h2 className="page-title mb-1" style={{ fontSize: 'clamp(1.5rem, 4vw, 2.5rem)' }}>
@@ -231,7 +247,7 @@ export default function MovieEntry({ roomCode, userId, userName, room, userList,
         {/* Preview selected movie */}
         {selectedMovie && (
           <div className="mb-4 animate-scale-in">
-            <MovieCard movie={selectedMovie} />
+            <MovieCard movie={selectedMovie} previewPoster />
             <div className="flex gap-3 mt-3">
               <button onClick={handleCancel} className="btn-secondary flex-1 text-sm">
                 Try another
@@ -251,6 +267,11 @@ export default function MovieEntry({ roomCode, userId, userName, room, userList,
         {!selectedMovie && (
           <>
             <div className="relative mb-4">
+              {sessionRequests > 0 && (
+                <p className="text-text-muted text-xs text-right mb-1">
+                  {sessionRequests} search{sessionRequests !== 1 ? 'es' : ''} this session
+                </p>
+              )}
               <input
                 type="text"
                 value={query}
@@ -340,6 +361,7 @@ export default function MovieEntry({ roomCode, userId, userName, room, userList,
             {error}
           </div>
         )}
+      </div>
       </div>
     </div>
   );

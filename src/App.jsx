@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useSession } from './hooks/useSession';
 import { useRoom } from './hooks/useRoom';
 import Home from './components/Home/Home';
@@ -8,10 +8,41 @@ import VetoRound from './components/VetoRound/VetoRound';
 import FinalVote from './components/FinalVote/FinalVote';
 import Winner from './components/Winner/Winner';
 
+const TRANSITION_MESSAGES = {
+  entry: 'Time to pick your movies!',
+  veto: "Time to veto!",
+  finals: 'Moving to Final Vote...',
+  winner: "We have a winner!",
+};
+
 export default function App() {
   const { userId, roomCode, userName, setSession, clearSession, isInRoom } = useSession();
   const { room, loading, error, userList, userCount, phase, isHost, movies, movieList, settings } =
     useRoom(roomCode);
+
+  const [transitioning, setTransitioning] = useState(false);
+  const [transitionMessage, setTransitionMessage] = useState('');
+  const prevPhaseRef = useRef(null);
+
+  // Phase transition: show a brief interstitial screen when phase changes
+  useEffect(() => {
+    if (!phase) return;
+
+    const prev = prevPhaseRef.current;
+    prevPhaseRef.current = phase;
+
+    // Skip transition on initial load (prev is null)
+    if (!prev || prev === phase) return;
+
+    const message = TRANSITION_MESSAGES[phase];
+    if (message) {
+      window.scrollTo({ top: 0, behavior: 'instant' });
+      setTransitionMessage(message);
+      setTransitioning(true);
+      const timer = setTimeout(() => setTransitioning(false), 1600);
+      return () => clearTimeout(timer);
+    }
+  }, [phase]);
 
   // Check URL for room code (from shared link)
   useEffect(() => {
@@ -67,6 +98,26 @@ export default function App() {
   // Not in a room → show home
   if (!isInRoom || !room) {
     return <Home onRoomJoined={handleRoomJoined} />;
+  }
+
+  // Phase transition interstitial
+  if (transitioning) {
+    return (
+      <div className="page-container">
+        <div className="text-center animate-fade-in">
+          <div
+            className="w-12 h-12 rounded-full border-2 border-t-transparent animate-spin mx-auto mb-6"
+            style={{ borderColor: 'var(--color-accent-primary)', borderTopColor: 'transparent' }}
+          />
+          <p
+            className="page-title animate-scale-in"
+            style={{ fontSize: 'clamp(1.5rem, 5vw, 3rem)', animationDelay: '0.1s' }}
+          >
+            {transitionMessage}
+          </p>
+        </div>
+      </div>
+    );
   }
 
   // Phase router

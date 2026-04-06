@@ -58,6 +58,7 @@ export default function MovieCard({
   onSelect,
   selected = false,
   compact = false,
+  previewPoster = false,
   winner = false,
 }) {
   const [imgFailed, setImgFailed] = useState(false);
@@ -91,7 +92,7 @@ export default function MovieCard({
         {hasPoster ? (
           <div
             className={`overflow-hidden shrink-0 ${compact ? 'w-16 rounded-lg' : 'w-full'}`}
-            style={{ aspectRatio: '2/3' }}
+            style={{ aspectRatio: '2/3', ...(previewPoster && !compact ? { maxHeight: '200px' } : {}) }}
           >
             <img
               src={movie.poster}
@@ -120,6 +121,28 @@ export default function MovieCard({
               <span className="text-text-muted text-xs shrink-0">{movie.year}</span>
             )}
           </div>
+
+          {/* Compact: ratings + runtime + director */}
+          {compact && (
+            <div className="mt-1 space-y-0.5">
+              <div className="flex items-center gap-2 flex-wrap">
+                {movie.imdbRating && movie.imdbRating !== 'N/A' && (
+                  <span className="text-xs text-text-muted">★ {movie.imdbRating}</span>
+                )}
+                {movie.rtRating && movie.rtRating !== 'N/A' && (
+                  <span className="text-xs text-text-muted">🍅 {movie.rtRating}</span>
+                )}
+                {movie.runtime && movie.runtime !== 'N/A' && (
+                  <span className="text-xs text-text-muted">{movie.runtime}</span>
+                )}
+              </div>
+              {movie.director && movie.director !== 'N/A' && (
+                <p className="text-text-muted text-xs truncate">
+                  <span className="text-text-secondary">Dir:</span> {movie.director}
+                </p>
+              )}
+            </div>
+          )}
 
           {/* Ratings Row */}
           {!compact && (

@@ -15,13 +15,14 @@ export default function Winner({ room, onPlayAgain }) {
   const winnerId = room?.winner;
   const winnerMovie = winnerId ? { id: winnerId, ...movies[winnerId] } : null;
 
-  // Fire confetti on mount
+  // Fire confetti on mount, cancel on unmount to prevent leaking into next screens
   useEffect(() => {
     if (!winnerMovie || hasConfettied.current) return;
     hasConfettied.current = true;
 
     const duration = 3000;
     const end = Date.now() + duration;
+    let rafId;
 
     const frame = () => {
       confetti({
@@ -40,7 +41,7 @@ export default function Winner({ room, onPlayAgain }) {
       });
 
       if (Date.now() < end) {
-        requestAnimationFrame(frame);
+        rafId = requestAnimationFrame(frame);
       }
     };
 
@@ -52,7 +53,11 @@ export default function Winner({ room, onPlayAgain }) {
       colors: ['#e2b616', '#c70039', '#00b894', '#f0f0f0'],
     });
 
-    requestAnimationFrame(frame);
+    rafId = requestAnimationFrame(frame);
+
+    return () => {
+      if (rafId) cancelAnimationFrame(rafId);
+    };
   }, [winnerMovie]);
 
   if (!winnerMovie) {

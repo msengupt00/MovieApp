@@ -308,6 +308,7 @@ export async function runTiebreaker(roomCode, tiedMovieIds) {
     }
   });
   updates['votes'] = null;
+  updates['tiebreakerRound'] = (room.tiebreakerRound || 0) + 1;
 
   await update(ref(db, `rooms/${roomCode}`), updates);
 }

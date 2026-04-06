@@ -1,6 +1,23 @@
 const OMDB_API_KEY = import.meta.env.VITE_OMDB_API_KEY || 'a5aed864';
 const OMDB_BASE_URL = 'https://www.omdbapi.com/';
 
+const SESSION_KEY = 'omdb_request_count';
+
+function incrementRequestCount() {
+  const current = parseInt(sessionStorage.getItem(SESSION_KEY) || '0', 10);
+  sessionStorage.setItem(SESSION_KEY, current + 1);
+}
+
+export function getSessionRequestCount() {
+  return parseInt(sessionStorage.getItem(SESSION_KEY) || '0', 10);
+}
+
+function checkRateLimit(data) {
+  if (data.Response === 'False' && data.Error === 'Request limit reached!') {
+    throw new Error('Movie search is temporarily unavailable. Try again tomorrow.');
+  }
+}
+
 /**
  * Search movies by title (returns multiple results)
  * @param {string} query - Movie title to search
@@ -12,6 +29,9 @@ export async function searchMovies(query) {
   const url = `${OMDB_BASE_URL}?apikey=${OMDB_API_KEY}&s=${encodeURIComponent(query.trim())}&type=movie`;
   const res = await fetch(url);
   const data = await res.json();
+  incrementRequestCount();
+
+  checkRateLimit(data);
 
   if (data.Response === 'False') return [];
 
@@ -32,6 +52,9 @@ export async function getMovieDetails(imdbID) {
   const url = `${OMDB_BASE_URL}?apikey=${OMDB_API_KEY}&i=${imdbID}&plot=short`;
   const res = await fetch(url);
   const data = await res.json();
+  incrementRequestCount();
+
+  checkRateLimit(data);
 
   if (data.Response === 'False') return null;
 

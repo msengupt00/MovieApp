@@ -36,7 +36,7 @@ export function getVetoStatus(movies, userId, vetoBudget) {
  * @returns {boolean}
  */
 export function shouldAutoComplete(movies, userId) {
-  return !Object.values(movies || {}).some(
-    (m) => !m.vetoed || m.vetoedBy === userId
-  );
+  // Auto-complete if there are no un-vetoed movies the user could still veto
+  // (i.e., every movie is either already vetoed by someone else, or vetoed by the user themselves)
+  return !Object.values(movies || {}).some((m) => !m.vetoed);
 }

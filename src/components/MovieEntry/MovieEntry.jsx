@@ -271,12 +271,15 @@ export default function MovieEntry({ roomCode, userId, userName, room, userList,
               <div className="space-y-2 mb-4 max-h-[50vh] overflow-y-auto">
                 {searchResults.map((result) => {
                   const posterOk = result.poster && !failedPosters.has(result.imdbID);
+                  const alreadyAdded = movieList.some((m) => m.imdbID === result.imdbID);
                   return (
                     <button
                       key={result.imdbID}
-                      onClick={() => handleSelectResult(result)}
-                      disabled={loadingDetails}
-                      className="w-full text-left card p-3 flex items-center gap-3 hover:bg-surface-elevated transition-colors cursor-pointer"
+                      onClick={() => !alreadyAdded && handleSelectResult(result)}
+                      disabled={loadingDetails || alreadyAdded}
+                      className={`w-full text-left card p-3 flex items-center gap-3 transition-colors ${
+                        alreadyAdded ? 'opacity-50 cursor-not-allowed' : 'hover:bg-surface-elevated cursor-pointer'
+                      }`}
                     >
                       {posterOk ? (
                         <img
@@ -298,10 +301,16 @@ export default function MovieEntry({ roomCode, userId, userName, room, userList,
                           </span>
                         </div>
                       )}
-                      <div>
+                      <div className="flex-1 min-w-0">
                         <p className="text-text-primary text-sm font-medium">{result.title}</p>
                         <p className="text-text-muted text-xs">{result.year}</p>
                       </div>
+                      {alreadyAdded && (
+                        <span className="text-xs px-2 py-1 rounded-full shrink-0"
+                          style={{ backgroundColor: 'var(--color-surface-elevated)', color: 'var(--color-text-muted)' }}>
+                          Already added
+                        </span>
+                      )}
                     </button>
                   );
                 })}

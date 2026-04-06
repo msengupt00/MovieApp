@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { submitVote, setWinner } from '../../services/roomService';
+import { submitVote, setWinner, runTiebreaker } from '../../services/roomService';
 import MovieCard from '../MovieCard/MovieCard';
 
 /**
@@ -60,22 +60,7 @@ export default function FinalVote({ roomCode, userId, room, userList, movieList 
   }, [votes, userList.length]);
 
   const handleTiebreaker = async (tiedMovieIds) => {
-    // Veto all non-tied survivors and clear votes
-    const { update } = await import('../../services/firebase');
-    const { db, ref } = await import('../../services/firebase');
-
-    const updates = {};
-    // Mark non-tied survivors as vetoed
-    Object.entries(movies).forEach(([id, m]) => {
-      if (!m.vetoed && !tiedMovieIds.includes(id)) {
-        updates[`movies/${id}/vetoed`] = true;
-        updates[`movies/${id}/vetoedBy`] = 'tiebreaker';
-      }
-    });
-    // Clear all votes for re-vote
-    updates['votes'] = null;
-
-    await update(ref(db, `rooms/${roomCode}`), updates);
+    await runTiebreaker(roomCode, tiedMovieIds);
     setSubmitted(false);
     setSelectedMovieId(null);
   };
@@ -134,20 +119,21 @@ export default function FinalVote({ roomCode, userId, room, userList, movieList 
   }
 
   return (
-    <div className="page-container" style={{ justifyContent: 'flex-start', paddingTop: '2rem' }}>
-      <div className="w-full max-w-md animate-fade-in">
-        {/* Header */}
-        <div className="text-center mb-6">
-          <h2 className="page-title mb-1" style={{ fontSize: 'clamp(1.5rem, 4vw, 2.5rem)' }}>
-            {survivors.length === 2 ? 'TIEBREAKER!' : 'FINAL VOTE'}
-          </h2>
-          <p className="text-text-secondary text-sm">
-            Pick your favorite from the survivors
-          </p>
-        </div>
+    <div style={{ height: '100dvh', display: 'flex', flexDirection: 'column', backgroundColor: 'var(--color-surface-base)' }}>
+      {/* Header */}
+      <div className="text-center py-3 px-4 shrink-0"
+        style={{ borderBottom: '1px solid var(--color-surface-elevated)' }}>
+        <h2 className="page-title mb-1" style={{ fontSize: 'clamp(1.5rem, 4vw, 2.5rem)' }}>
+          {survivors.length === 2 ? 'TIEBREAKER!' : 'FINAL VOTE'}
+        </h2>
+        <p className="text-text-secondary text-sm">
+          Pick your favorite from the survivors
+        </p>
+      </div>
 
-        {/* Survivor Cards */}
-        <div className="space-y-4 pb-24">
+      {/* Scrollable Survivor Cards */}
+      <div className="flex-1 overflow-y-auto px-4 py-4" style={{ WebkitOverflowScrolling: 'touch' }}>
+        <div className="max-w-md mx-auto space-y-4">
           {survivors.map((movie, i) => (
             <div key={movie.id} className="animate-slide-up" style={{ animationDelay: `${i * 0.1}s` }}>
               <MovieCard
@@ -158,28 +144,28 @@ export default function FinalVote({ roomCode, userId, room, userList, movieList 
             </div>
           ))}
         </div>
-
-        {/* Submit vote - fixed at bottom */}
-        <div className="fixed bottom-0 left-0 right-0 p-4"
-          style={{ backgroundColor: 'var(--color-surface-base)', borderTop: '1px solid var(--color-surface-elevated)' }}>
-          <div className="max-w-md mx-auto">
-            <button
-              onClick={handleSubmitVote}
-              disabled={!selectedMovieId}
-              className="btn-primary w-full text-lg py-4"
-            >
-              {selectedMovieId ? 'Submit Vote' : 'Select a movie'}
-            </button>
-          </div>
-        </div>
-
-        {/* Error */}
-        {error && (
-          <div className="fixed top-4 left-4 right-4 z-30 p-3 rounded-button bg-accent-danger/10 border border-accent-danger/30 text-accent-danger text-sm text-center">
-            {error}
-          </div>
-        )}
       </div>
+
+      {/* Submit vote — pinned at bottom, outside scroll container */}
+      <div className="shrink-0 p-4"
+        style={{ borderTop: '1px solid var(--color-surface-elevated)', backgroundColor: 'var(--color-surface-base)' }}>
+        <div className="max-w-md mx-auto">
+          <button
+            onClick={handleSubmitVote}
+            disabled={!selectedMovieId}
+            className="btn-primary w-full text-lg py-4"
+          >
+            {selectedMovieId ? 'Submit Vote' : 'Select a movie'}
+          </button>
+        </div>
+      </div>
+
+      {/* Error */}
+      {error && (
+        <div className="absolute top-4 left-4 right-4 z-30 p-3 rounded-button bg-accent-danger/10 border border-accent-danger/30 text-accent-danger text-sm text-center">
+          {error}
+        </div>
+      )}
     </div>
   );
 }

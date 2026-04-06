@@ -13,7 +13,7 @@ import MovieCard from '../MovieCard/MovieCard';
  * - movieList: Array
  * - settings: { moviesPerPerson: number }
  */
-export default function VetoRound({ roomCode, userId, room, userList, movieList, settings }) {
+export default function VetoRound({ roomCode, userId, room, userList, movieList, settings, isHost }) {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
   const [myDone, setMyDone] = useState(false);
@@ -36,13 +36,14 @@ export default function VetoRound({ roomCode, userId, room, userList, movieList,
     }
   }, [room, userId]);
 
-  // Check if ALL users are done → transition to finals
+  // Host checks if ALL users are done → transition to finals
   useEffect(() => {
+    if (!isHost) return;
     const allDone = userList.every((u) => u.ready);
     if (allDone && userList.length >= 2) {
       goToFinals(roomCode);
     }
-  }, [userList, roomCode]);
+  }, [userList, roomCode, isHost]);
 
   const handleVeto = async (movie) => {
     if (remaining <= 0) return;
@@ -116,31 +117,30 @@ export default function VetoRound({ roomCode, userId, room, userList, movieList,
   const movieEntries = Object.entries(movies).map(([id, data]) => ({ id, ...data }));
 
   return (
-    <div className="page-container" style={{ justifyContent: 'flex-start', paddingTop: '2rem' }}>
-      <div className="w-full max-w-md animate-fade-in">
-        {/* Header */}
-        <div className="text-center mb-4 sticky top-0 z-10 py-3"
-          style={{ backgroundColor: 'var(--color-surface-base)' }}>
-          <h2 className="page-title mb-1" style={{ fontSize: 'clamp(1.3rem, 3.5vw, 2rem)' }}>
-            VETO ROUND
-          </h2>
-          <div className="flex items-center justify-center gap-4">
-            <span className="text-text-secondary text-sm">
-              Vetos remaining:{' '}
-              <span className={`font-bold ${remaining === 0 ? 'text-accent-success' : 'text-accent-primary'}`}>
-                {remaining}
-              </span>
-              <span className="text-text-muted"> / {vetoBudget}</span>
-            </span>
-          </div>
-        </div>
+    <div style={{ height: '100dvh', display: 'flex', flexDirection: 'column', backgroundColor: 'var(--color-surface-base)' }}>
+      {/* Header */}
+      <div className="text-center py-3 px-4 shrink-0"
+        style={{ borderBottom: '1px solid var(--color-surface-elevated)' }}>
+        <h2 className="page-title mb-1" style={{ fontSize: 'clamp(1.3rem, 3.5vw, 2rem)' }}>
+          VETO ROUND
+        </h2>
+        <span className="text-text-secondary text-sm">
+          Vetos remaining:{' '}
+          <span className={`font-bold ${remaining === 0 ? 'text-accent-success' : 'text-accent-primary'}`}>
+            {remaining}
+          </span>
+          <span className="text-text-muted"> / {vetoBudget}</span>
+        </span>
+      </div>
 
-        {/* Movie Cards */}
-        <div className="space-y-4 pb-24">
+      {/* Scrollable Movie Cards */}
+      <div className="flex-1 overflow-y-auto px-4 py-4" style={{ WebkitOverflowScrolling: 'touch' }}>
+        <div className="max-w-md mx-auto space-y-3">
           {movieEntries.map((movie, i) => (
             <div key={movie.id} className="animate-slide-up" style={{ animationDelay: `${i * 0.05}s` }}>
               <MovieCard
                 movie={movie}
+                compact
                 vetoed={movie.vetoed}
                 vetoedByMe={movie.vetoedBy === userId}
                 onVeto={remaining > 0 && !movie.vetoed ? handleVeto : undefined}
@@ -149,32 +149,32 @@ export default function VetoRound({ roomCode, userId, room, userList, movieList,
             </div>
           ))}
         </div>
-
-        {/* Done button - fixed at bottom */}
-        <div className="fixed bottom-0 left-0 right-0 p-4"
-          style={{ backgroundColor: 'var(--color-surface-base)', borderTop: '1px solid var(--color-surface-elevated)' }}>
-          <div className="max-w-md mx-auto">
-            <button
-              onClick={handleDone}
-              disabled={submitting || remaining > 0}
-              className="btn-primary w-full text-lg py-4"
-            >
-              {submitting
-                ? 'Submitting...'
-                : remaining > 0
-                  ? `Use ${remaining} more veto${remaining !== 1 ? 's' : ''}`
-                  : 'Lock In Vetos'}
-            </button>
-          </div>
-        </div>
-
-        {/* Error */}
-        {error && (
-          <div className="fixed top-4 left-4 right-4 z-30 p-3 rounded-button bg-accent-danger/10 border border-accent-danger/30 text-accent-danger text-sm text-center animate-scale-in">
-            {error}
-          </div>
-        )}
       </div>
+
+      {/* Done button — pinned at bottom, outside scroll container */}
+      <div className="shrink-0 p-4"
+        style={{ borderTop: '1px solid var(--color-surface-elevated)', backgroundColor: 'var(--color-surface-base)' }}>
+        <div className="max-w-md mx-auto">
+          <button
+            onClick={handleDone}
+            disabled={submitting || remaining > 0}
+            className="btn-primary w-full text-lg py-4"
+          >
+            {submitting
+              ? 'Submitting...'
+              : remaining > 0
+                ? `Use ${remaining} more veto${remaining !== 1 ? 's' : ''}`
+                : 'Lock In Vetos'}
+          </button>
+        </div>
+      </div>
+
+      {/* Error */}
+      {error && (
+        <div className="absolute top-4 left-4 right-4 z-30 p-3 rounded-button bg-accent-danger/10 border border-accent-danger/30 text-accent-danger text-sm text-center animate-scale-in">
+          {error}
+        </div>
+      )}
     </div>
   );
 }

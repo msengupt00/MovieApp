@@ -291,6 +291,28 @@ export async function setWinner(roomCode, movieId) {
 }
 
 /**
+ * Handle a tie in the final vote — veto non-tied movies and clear votes for a re-vote
+ * @param {string} roomCode
+ * @param {string[]} tiedMovieIds - IDs of movies that tied
+ */
+export async function runTiebreaker(roomCode, tiedMovieIds) {
+  const snapshot = await get(ref(db, `rooms/${roomCode}`));
+  const room = snapshot.val();
+  const movies = room.movies || {};
+
+  const updates = {};
+  Object.entries(movies).forEach(([id, m]) => {
+    if (!m.vetoed && !tiedMovieIds.includes(id)) {
+      updates[`movies/${id}/vetoed`] = true;
+      updates[`movies/${id}/vetoedBy`] = 'tiebreaker';
+    }
+  });
+  updates['votes'] = null;
+
+  await update(ref(db, `rooms/${roomCode}`), updates);
+}
+
+/**
  * Get the shareable room link
  * @param {string} roomCode
  * @returns {string}

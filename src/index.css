@@ -1,0 +1,130 @@
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600;700&display=swap');
+@import './theme/tokens.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* === GLOBAL STYLES === */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  font-family: var(--font-body);
+  background-color: var(--color-surface-base);
+  color: var(--color-text-primary);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* === BACKGROUND TEXTURE === */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: 
+    radial-gradient(circle at 20% 50%, rgba(226, 182, 22, 0.03) 0%, transparent 50%),
+    radial-gradient(circle at 80% 20%, rgba(199, 0, 57, 0.03) 0%, transparent 50%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+#root {
+  position: relative;
+  z-index: 1;
+  min-height: 100vh;
+}
+
+/* === SCROLLBAR === */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--color-surface-base);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-text-muted);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-text-secondary);
+}
+
+/* === UTILITY CLASSES === */
+@layer components {
+  .btn-primary {
+    @apply px-6 py-3 font-semibold rounded-button transition-all duration-200;
+    background-color: var(--color-accent-primary);
+    color: var(--color-text-inverse);
+  }
+  .btn-primary:hover {
+    filter: brightness(1.1);
+    box-shadow: var(--shadow-glow);
+  }
+  .btn-primary:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    filter: none;
+    box-shadow: none;
+  }
+
+  .btn-secondary {
+    @apply px-6 py-3 font-semibold rounded-button transition-all duration-200 border;
+    border-color: var(--color-accent-primary);
+    color: var(--color-accent-primary);
+    background: transparent;
+  }
+  .btn-secondary:hover {
+    background-color: rgba(226, 182, 22, 0.1);
+  }
+
+  .btn-danger {
+    @apply px-4 py-2 font-semibold rounded-button transition-all duration-200;
+    background-color: var(--color-accent-secondary);
+    color: var(--color-text-primary);
+  }
+  .btn-danger:hover {
+    filter: brightness(1.15);
+  }
+
+  .input-field {
+    @apply w-full px-4 py-3 rounded-button outline-none transition-all duration-200;
+    background-color: var(--color-surface-elevated);
+    color: var(--color-text-primary);
+    border: 1px solid transparent;
+  }
+  .input-field:focus {
+    border-color: var(--color-accent-primary);
+    box-shadow: 0 0 0 3px rgba(226, 182, 22, 0.15);
+  }
+  .input-field::placeholder {
+    color: var(--color-text-muted);
+  }
+
+  .card {
+    @apply rounded-card p-5;
+    background-color: var(--color-surface-card);
+    box-shadow: var(--shadow-card);
+  }
+
+  .page-container {
+    @apply min-h-screen flex flex-col items-center justify-center px-4 py-8;
+  }
+
+  .page-title {
+    font-family: var(--font-display);
+    font-size: clamp(2rem, 6vw, 4rem);
+    letter-spacing: 2px;
+    color: var(--color-accent-primary);
+  }
+}

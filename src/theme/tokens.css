@@ -1,0 +1,60 @@
+/* ============================================
+   MOVIEMANIA DESIGN TOKENS
+   ============================================
+   This is the SINGLE SOURCE OF TRUTH for all
+   visual design values. When Figma designs
+   arrive via MCP, update ONLY this file.
+   
+   All components reference these via:
+   - CSS variables (var(--color-*))
+   - Tailwind semantic classes (bg-surface-card)
+   ============================================ */
+
+:root {
+  /* === COLORS === */
+  --color-surface-base: #0a0a0f;
+  --color-surface-card: #1a1a2e;
+  --color-surface-elevated: #252540;
+
+  --color-accent-primary: #e2b616;
+  --color-accent-secondary: #c70039;
+  --color-accent-success: #00b894;
+  --color-accent-danger: #e74c3c;
+
+  --color-text-primary: #f0f0f0;
+  --color-text-secondary: #b8b8cc;
+  --color-text-muted: #666680;
+  --color-text-inverse: #0a0a0f;
+
+  /* === TYPOGRAPHY === */
+  --font-display: 'Bebas Neue', 'Impact', sans-serif;
+  --font-body: 'DM Sans', 'Helvetica Neue', sans-serif;
+
+  /* === SPACING === */
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 16px;
+  --space-lg: 24px;
+  --space-xl: 32px;
+  --space-2xl: 48px;
+  --space-3xl: 64px;
+
+  /* === RADII === */
+  --radius-card: 12px;
+  --radius-button: 8px;
+
+  /* === SHADOWS === */
+  --shadow-card: 0 4px 24px rgba(0, 0, 0, 0.4);
+  --shadow-glow: 0 0 20px rgba(226, 182, 22, 0.3);
+
+  /* === TRANSITIONS === */
+  --transition-fast: 150ms ease;
+  --transition-base: 250ms ease;
+  --transition-slow: 400ms ease;
+
+  /* === Z-INDEX SCALE === */
+  --z-card: 1;
+  --z-overlay: 10;
+  --z-modal: 20;
+  --z-toast: 30;
+}
